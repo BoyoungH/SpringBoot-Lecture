@@ -8,10 +8,28 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequiredArgsConstructor
 public class MemberApiController {
     private final MemberService memberService;
+
+    @GetMapping("api/v1/members")
+    public List<Member> membersV1(){
+        return memberService.findMembers();
+    }
+
+    @GetMapping("api/v2/members")
+    public Result membersV2(){
+        List<Member> findMembers = memberService.findMembers();
+        //엔티티 -> DTO 변환
+        List<MemberDto> collect = findMembers.stream()
+                .map(m -> new MemberDto(m.getName()))
+                .collect(Collectors.toList());
+        return new Result(collect); // 화면에 보여지는 전체 큰 데이터가 Result, 향후 필요한 필드 추가 가능, return new Result(collect.size(), collect)
+    }
 
     @PostMapping("/api/v1/members")
     public CreateMemberResponse saveMemberV1(@RequestBody @Valid Member member){
@@ -52,13 +70,26 @@ public class MemberApiController {
 
     @Data
     @AllArgsConstructor
-    private class UpdateMemberResponse {
+    static class UpdateMemberResponse {
         private Long id;
         private String name;
     }
 
     @Data
-    private class UpdateMemberRequest {
+    static class UpdateMemberRequest {
+        private String name;
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class Result<T>{
+        //private int count;
+        private T data; // data안에 객체가 들어감, data가 객체를 감쌈
+    }
+
+    @Data
+    @AllArgsConstructor
+    static class MemberDto {
         private String name;
     }
 }
