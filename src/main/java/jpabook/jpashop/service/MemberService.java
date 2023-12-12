@@ -40,4 +40,9 @@ public class MemberService {
         return memberRepostiory.findOne(memberId);
     }
 
+    @Transactional
+    public void update(Long id, String name) {
+        Member member = memberRepostiory.findOne(id);
+        member.setName(name);
+    }
 }
