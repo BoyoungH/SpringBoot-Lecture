@@ -65,11 +65,30 @@ public class OrderRepository {
         return query.getResultList();
     }
 
-    public List<Order> findAllWithMemberDelivery() {
+    public List<Order> findAllWithMemberDelivery() { // orderitems에서 1+N문제 터짐, member와 delivery는 쿼리 하나로 실행 가능, 쿼리 총 7개
         return em.createQuery(
                 "select o from Order o" +
                 " join fetch o.member m" +
                         " join fetch o.delivery d", Order.class
         ).getResultList();
+    }
+
+    public List<Order> findAllWithMemberDelivery(int offset, int limit) { // 1+1+1 페이징 + fetch처리
+        return em.createQuery(
+                "select o from Order o" +
+                        " join fetch o.member m" +
+                        " join fetch o.delivery d", Order.class)
+                .setFirstResult(offset)
+                .setMaxResults(limit)
+                .getResultList();
+    }
+
+    public List<Order> findAllWithItem() { // 쿼리 하나 나가지만 페이징 불가능, 중복 처리가 안된 데이터가 디비에서 넘어옴
+        return em.createQuery("select distinct o from Order o" +
+                " join fetch o.member m" +
+                " join fetch o.delivery d" +
+                " join fetch o.orderItems oi" +
+                " join fetch oi.item i", Order.class)
+                .getResultList();
     }
 }
